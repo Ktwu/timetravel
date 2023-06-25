@@ -13,7 +13,7 @@ import (
 	// manage, using this now is a slight bit of future-proofing.
 	"github.com/google/go-cmp/cmp"
 	"github.com/mattn/go-sqlite3"
-	"github.com/temelpa/timetravel/api/data"
+	"github.com/temelpa/timetravel/data"
 	"github.com/temelpa/timetravel/entity"
 
 	"os"
