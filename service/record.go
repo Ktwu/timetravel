@@ -28,3 +28,14 @@ type RecordService interface {
 	// UpdateRecord will error if id <= 0 or the record does not exist with that id.
 	UpdateRecord(ctx context.Context, id int, updates map[string]*string) (entity.Record, error)
 }
+
+// Introduce the concept of record versions. Versions will start at 1 and increment per
+// later versions that exist
+type RecordServiceV2 interface {
+	// Retrieve a record. If `version` is nil or 0, return the latest version that
+	// exists.
+	GetVersionedRecord(ctx context.Context, id int, version uint) (entity.Record, error)
+
+	// Retrieves all versions of a record.
+	GetAllVersions(ctx context.Context, id int) ([]entity.Record, error)
+}
