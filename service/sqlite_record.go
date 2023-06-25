@@ -11,6 +11,7 @@ import (
 	// offers better performance at larger scales. For lack
 	// of knowning exactly how many records this service will
 	// manage, using this now is a slight bit of future-proofing.
+	"github.com/google/go-cmp/cmp"
 	"github.com/mattn/go-sqlite3"
 	"github.com/temelpa/timetravel/api/data"
 	"github.com/temelpa/timetravel/entity"
@@ -182,4 +183,25 @@ func (s *SQLiteRecordService) UpdateRecord(
 	}
 
 	return entry.Copy(), nil
+}
+
+// Returns a map that, once applied to the updated data map,
+// will restore it back to the original data from prior to the update.
+func updateInverse(
+	data map[string]string,
+	updates map[string]*string,
+) map[string]*string {
+	updateReversal := make(map[string]*string)
+
+	for key, value := range updates {
+		prevValue, exists := data[key]
+		if exists && !cmp.Equal(prevValue, value) {
+			updateReversal[key] = &prevValue
+		}
+		if !exists && value != nil {
+			updateReversal[key] = nil
+		}
+	}
+
+	return updateReversal
 }

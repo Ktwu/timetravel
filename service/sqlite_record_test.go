@@ -104,3 +104,27 @@ func TestSanitySQL(t *testing.T) {
 		t.Errorf("Fetched entry %v not the same as %v", r, testEntityUpdate2)
 	}
 }
+
+// Test creating an inverse update on a map for basic add, delete, and mutate ops
+func TestUpdateInverse(t *testing.T) {
+	basicMap := map[string]string {
+		"hello": "world",
+		"basic": "data",
+	}
+
+	worldText := "world"
+	update := map[string]*string {
+		"goodbye": &worldText,
+		"hello": nil,
+	}
+
+	expectedInverse := map[string]*string {
+		"hello": &worldText,
+		"goodbye": nil,
+	}
+
+	inverse := updateInverse(basicMap, update)
+	if !cmp.Equal(inverse, expectedInverse) {
+		t.Errorf("Expected %v, got %v", expectedInverse, inverse)
+	}
+}
