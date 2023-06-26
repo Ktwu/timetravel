@@ -12,8 +12,14 @@ import (
 func TestServerSanity(t *testing.T) {
 	ttServer := NewTimeTravelServer()
 
-	testRecordPath := fmt.Sprintf("/api/v1/records/%d", 42)
+	testRecordPath := fmt.Sprintf("/api/v3/records/%d", 42)
 	req, err := http.NewRequest("GET", testRecordPath, nil)
+	if err == nil {
+		t.Errorf("Should have failed grabbing nonexistant API")
+	}
+
+	testRecordPath = fmt.Sprintf("/api/v1/records/%d", 42)
+	req, err = http.NewRequest("GET", testRecordPath, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -23,4 +29,6 @@ func TestServerSanity(t *testing.T) {
 	if rr.Code != http.StatusBadRequest {
 		t.Errorf("Should have failed to read non-existant record, but got %v", rr.Code)
 	}
+
+	// TODO test posting records and verifying the versions of those records
 }

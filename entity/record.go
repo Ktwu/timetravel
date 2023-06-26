@@ -3,6 +3,15 @@ package entity
 type Record struct {
 	ID   int               `json:"id"`
 	Data map[string]string `json:"data"`
+
+	// v2 fields
+	Version int				`json:"version,omitempty"`
+}
+
+func (d *Record) Sanitize(apiVersion int) {
+	if apiVersion < 2 {
+		d.Version = 0
+	}
 }
 
 func (d *Record) Copy() Record {
@@ -16,5 +25,6 @@ func (d *Record) Copy() Record {
 	return Record{
 		ID:   d.ID,
 		Data: newMap,
+		Version: d.Version,
 	}
 }

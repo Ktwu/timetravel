@@ -20,7 +20,7 @@ func NewTimeTravelServer() TimeTravelServer {
 	service := service.NewInMemoryRecordService()
 	api := api.NewAPI(&service)
 
-	apiRoute := router.PathPrefix("/api/v1").Subrouter()
+	apiRoute := router.PathPrefix("/api/v{apiVersion:1}").Subrouter()
 	apiRoute.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		if err != nil {

@@ -14,6 +14,7 @@ func TestSanity(t *testing.T) {
 
 	testEntity := entity.Record{
 		ID: 42,
+		Version: 1,
 		Data: map[string]string{
 			"hello": "world",
 		},
@@ -21,6 +22,7 @@ func TestSanity(t *testing.T) {
 
 	testEntityUpdate := entity.Record{
 		ID: testEntity.ID,
+		Version: 2,
 		Data: map[string]string{
 			"hello": "world",
 			"goodbye": "world",
@@ -29,6 +31,7 @@ func TestSanity(t *testing.T) {
 
 	testEntityUpdate2 := entity.Record{
 		ID: testEntity.ID,
+		Version: 3,
 		Data: map[string]string{
 			"goodbye": "unittest",
 		},

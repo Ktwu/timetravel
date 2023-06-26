@@ -117,7 +117,7 @@ func (s *SQLiteRecordService) GetRecord(
 		return entity.Record{}, err
 	}
 
-	return entity.Record{ID: id, Data: data}, nil
+	return entity.Record{ID: id, Version: recordVersion, Data: data}, nil
 }
 
 func (s *SQLiteRecordService) CreateRecord(
@@ -164,6 +164,17 @@ func (s *SQLiteRecordService) UpdateRecord(
 		return entity.Record{}, err
 	}
 
+	updateInverse := updateInverse(entry.Data, updates)
+	if statement, err := s.db.Prepare(data.INSERT_RECORD_DELTA); err == nil {
+		if jsonBytes, err := json.Marshal(updateInverse); err == nil {
+			_, err = statement.Exec(id, entry.Version, string(jsonBytes))
+		}
+	}
+	if err != nil {
+		logError(err)
+		return entity.Record{}, err
+	}
+
 	for key, value := range updates {
 		if value == nil { // deletion update
 			delete(entry.Data, key)
@@ -171,10 +182,11 @@ func (s *SQLiteRecordService) UpdateRecord(
 			entry.Data[key] = *value
 		}
 	}
+	entry.Version += 1
 
 	if statement, err := s.db.Prepare(data.UPDATE_RECORD); err == nil {
 		if jsonBytes, err := json.Marshal(entry.Data); err == nil {
-			_, err = statement.Exec(1 /*version*/, string(jsonBytes), id)
+			_, err = statement.Exec(entry.Version, string(jsonBytes), id)
 		}
 	}
 	if err != nil {

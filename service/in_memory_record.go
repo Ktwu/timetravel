@@ -38,6 +38,7 @@ func (s *InMemoryRecordService) CreateRecord(ctx context.Context, record entity.
 		return ErrRecordAlreadyExists
 	}
 
+	record.Version = 1
 	s.data[id] = record
 	return nil
 }
@@ -55,6 +56,10 @@ func (s *InMemoryRecordService) UpdateRecord(ctx context.Context, id int, update
 			entry.Data[key] = *value
 		}
 	}
+
+	// TODO what should we do if the record doesn't meaningfully change?
+	entry.Version += 1
+	s.data[id] = entry
 
 	return entry.Copy(), nil
 }
