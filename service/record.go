@@ -34,7 +34,7 @@ type RecordService interface {
 type RecordServiceV2 interface {
 	// Retrieve a record. If `version` is nil or 0, return the latest version that
 	// exists.
-	GetVersionedRecord(ctx context.Context, id int, version uint) (entity.Record, error)
+	GetVersionedRecord(ctx context.Context, id int, version int) (entity.Record, error)
 
 	// Retrieves all versions of a record.
 	GetAllVersions(ctx context.Context, id int) ([]entity.Record, error)

@@ -13,7 +13,7 @@ func TestSanity(t *testing.T) {
 	service := NewInMemoryRecordService()
 
 	testEntity := entity.Record{
-		ID: 42,
+		ID:      42,
 		Version: 1,
 		Data: map[string]string{
 			"hello": "world",
@@ -21,16 +21,16 @@ func TestSanity(t *testing.T) {
 	}
 
 	testEntityUpdate := entity.Record{
-		ID: testEntity.ID,
+		ID:      testEntity.ID,
 		Version: 2,
 		Data: map[string]string{
-			"hello": "world",
+			"hello":   "world",
 			"goodbye": "world",
 		},
 	}
 
 	testEntityUpdate2 := entity.Record{
-		ID: testEntity.ID,
+		ID:      testEntity.ID,
 		Version: 3,
 		Data: map[string]string{
 			"goodbye": "unittest",
@@ -64,7 +64,7 @@ func TestSanity(t *testing.T) {
 
 	// Test adding data
 	testValue := "world"
-	if r, err := service.UpdateRecord(ctx, testEntity.ID, map[string]*string {
+	if r, err := service.UpdateRecord(ctx, testEntity.ID, map[string]*string{
 		"goodbye": &testValue,
 	}); err != nil {
 		t.Errorf("Unable to update record %v", testEntity)
@@ -73,8 +73,8 @@ func TestSanity(t *testing.T) {
 	}
 
 	// Test mutating and removing data
-	if r, err := service.UpdateRecord(ctx, testEntity.ID, map[string]*string {
-		"hello": nil,
+	if r, err := service.UpdateRecord(ctx, testEntity.ID, map[string]*string{
+		"hello":   nil,
 		"goodbye": &testValue,
 	}); err != nil {
 		t.Errorf("Unable to update record %v", testEntity)

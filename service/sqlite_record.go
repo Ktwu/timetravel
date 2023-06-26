@@ -11,7 +11,7 @@ import (
 	// offers better performance at larger scales. For lack
 	// of knowning exactly how many records this service will
 	// manage, using this now is a slight bit of future-proofing.
-	"github.com/google/go-cmp/cmp"
+
 	"github.com/mattn/go-sqlite3"
 	"github.com/temelpa/timetravel/data"
 	"github.com/temelpa/timetravel/entity"
@@ -68,7 +68,7 @@ func NewSQLiteRecordService(
 		return SQLiteRecordService{}, err
 	}
 
-	for _, sqlStatement := range []string {
+	for _, sqlStatement := range []string{
 		data.CREATE_RECORDS_TABLE,
 		data.CREATE_RECORD_DELTAS_TABLE,
 	} {
@@ -82,7 +82,7 @@ func NewSQLiteRecordService(
 			return SQLiteRecordService{}, err
 		}
 	}
-	
+
 	return SQLiteRecordService{db}, nil
 }
 
@@ -164,7 +164,11 @@ func (s *SQLiteRecordService) UpdateRecord(
 		return entity.Record{}, err
 	}
 
-	updateInverse := updateInverse(entry.Data, updates)
+	updateInverse := entry.InverseUpdate(updates)
+	if !entry.ApplyUpdate(updates) {
+		return entry, nil
+	}
+
 	if statement, err := s.db.Prepare(data.INSERT_RECORD_DELTA); err == nil {
 		if jsonBytes, err := json.Marshal(updateInverse); err == nil {
 			_, err = statement.Exec(id, entry.Version, string(jsonBytes))
@@ -175,15 +179,7 @@ func (s *SQLiteRecordService) UpdateRecord(
 		return entity.Record{}, err
 	}
 
-	for key, value := range updates {
-		if value == nil { // deletion update
-			delete(entry.Data, key)
-		} else {
-			entry.Data[key] = *value
-		}
-	}
 	entry.Version += 1
-
 	if statement, err := s.db.Prepare(data.UPDATE_RECORD); err == nil {
 		if jsonBytes, err := json.Marshal(entry.Data); err == nil {
 			_, err = statement.Exec(entry.Version, string(jsonBytes), id)
@@ -191,29 +187,63 @@ func (s *SQLiteRecordService) UpdateRecord(
 	}
 	if err != nil {
 		logError(err)
-		return entity.Record{}, err 
+		return entity.Record{}, err
 	}
 
 	return entry.Copy(), nil
 }
 
-// Returns a map that, once applied to the updated data map,
-// will restore it back to the original data from prior to the update.
-func updateInverse(
-	data map[string]string,
-	updates map[string]*string,
-) map[string]*string {
-	updateReversal := make(map[string]*string)
-
-	for key, value := range updates {
-		prevValue, exists := data[key]
-		if exists && !cmp.Equal(prevValue, value) {
-			updateReversal[key] = &prevValue
-		}
-		if !exists && value != nil {
-			updateReversal[key] = nil
-		}
+func (s *SQLiteRecordService) GetVersionedRecord(
+	ctx context.Context,
+	id int,
+	version int,
+) (entity.Record, error) {
+	entry, err := s.GetRecord(ctx, id)
+	if err != nil {
+		logError(err)
+		return entity.Record{}, err
 	}
 
-	return updateReversal
+	if version == 0 || version == entry.Version {
+		return entry, nil
+	}
+
+	if entry.Version < version {
+		return entity.Record{}, ErrRecordDoesNotExist
+	}
+
+	statement, err := s.db.Prepare(data.QUERY_RECORD_DELTAS)
+	if err != nil {
+		logError(err)
+		return entity.Record{}, err
+	}
+	rows, err := statement.Query(version, id)
+	if err != nil {
+		logError(err)
+		return entity.Record{}, err
+	}
+
+	for rows.Next() {
+		var jsonString string
+		var versionBeforeUpdate int
+
+		if err = rows.Scan(&id, &versionBeforeUpdate, &jsonString); err != nil {
+			logError(err)
+			if err == sql.ErrNoRows {
+				err = ErrRecordDoesNotExist
+			}
+			return entity.Record{}, err
+		}
+
+		var data map[string]*string
+		if err = json.Unmarshal([]byte(jsonString), &data); err != nil {
+			logError(err)
+			return entity.Record{}, err
+		}
+
+		entry.ApplyUpdate(data)
+		entry.Version = versionBeforeUpdate
+	}
+
+	return entry.Copy(), nil
 }

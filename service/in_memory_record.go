@@ -49,17 +49,11 @@ func (s *InMemoryRecordService) UpdateRecord(ctx context.Context, id int, update
 		return entity.Record{}, ErrRecordDoesNotExist
 	}
 
-	for key, value := range updates {
-		if value == nil { // deletion update
-			delete(entry.Data, key)
-		} else {
-			entry.Data[key] = *value
-		}
+	if entry.ApplyUpdate(updates) {
+		// TODO reconsider what we do if the udpate doesn't do anything meaninful
+		entry.Version += 1
+		s.data[id] = entry
 	}
-
-	// TODO what should we do if the record doesn't meaningfully change?
-	entry.Version += 1
-	s.data[id] = entry
 
 	return entry.Copy(), nil
 }
