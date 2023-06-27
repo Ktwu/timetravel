@@ -6,23 +6,15 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/temelpa/timetravel/service"
 )
 
 // GET /records/{id}
 // GetRecord retrieves the record.
-func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
+func GetRecords(a APIVersion, records service.RecordServiceV1, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
 	id := vars["id"]
-
-	apiVersion, err := strconv.ParseInt(vars["apiVersion"], 10, 32)
-	if err != nil {
-		// This really shouldn't be possible
-		// TODO can we have something cleaner here?
-		err := writeError(w, "invalid API version", http.StatusBadRequest)
-		logError(err)
-		return
-	}
 
 	idNumber, err := strconv.ParseInt(id, 10, 32)
 	if err != nil || idNumber <= 0 {
@@ -31,7 +23,7 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record, err := a.records.GetRecord(
+	record, err := records.GetRecord(
 		ctx,
 		int(idNumber),
 	)
@@ -41,7 +33,6 @@ func (a *API) GetRecords(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	record.Sanitize(int(apiVersion))
-	err = writeJSON(w, record, http.StatusOK)
+	err = writeJSON(w, a.Sanitize(record), http.StatusOK)
 	logError(err)
 }

@@ -32,6 +32,8 @@ type RecordServiceV1 interface {
 // Introduce the concept of record versions. Versions will start at 1 and increment per
 // later versions that exist
 type RecordServiceV2 interface {
+	RecordServiceV1
+
 	// Retrieve a record. If `version` is nil or 0, return the latest version that
 	// exists.
 	GetVersionedRecord(ctx context.Context, id int, version int) (entity.Record, error)
@@ -41,6 +43,6 @@ type RecordServiceV2 interface {
 }
 
 type RecordService interface {
-	RecordServiceV1
+	// The current supported max API level
 	RecordServiceV2
 }

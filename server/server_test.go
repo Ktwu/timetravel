@@ -146,7 +146,7 @@ func compareResponseBody(t *testing.T, response *http.Response, expectedBody map
 	}
 	var body map[string]interface{}
 	json.Unmarshal(jsonBody, &body)
-	if !cmp.Equal(body["id"], expectedBody["id"]) {
-		t.Errorf("Expected %v(%T), got %v(%T)", expectedBody, expectedBody["id"], body, body["id"])
+	if !cmp.Equal(body, expectedBody) {
+		t.Errorf("Expected %v, got %v", expectedBody, body)
 	}
 }

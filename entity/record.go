@@ -3,17 +3,9 @@ package entity
 import "github.com/google/go-cmp/cmp"
 
 type Record struct {
-	ID   int               `json:"id"`
-	Data map[string]string `json:"data"`
-
-	// v2 fields
-	Version int `json:"version,omitempty"`
-}
-
-func (d *Record) Sanitize(apiVersion int) {
-	if apiVersion < 2 {
-		d.Version = 0
-	}
+	ID      int               `json:"id"`
+	Data    map[string]string `json:"data"`
+	Version int               `json:"version"`
 }
 
 func (d *Record) ApplyUpdate(updates map[string]*string) bool {

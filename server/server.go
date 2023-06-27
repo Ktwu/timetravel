@@ -18,6 +18,7 @@ type TimeTravelServer struct {
 func NewTimeTravelServer(service service.RecordService) TimeTravelServer {
 	router := mux.NewRouter()
 	api := api.NewAPI(service)
+	api.CreateRoutes(router)
 
 	apiRoute := router.PathPrefix("/api/v{apiVersion:1}").Subrouter()
 	apiRoute.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -26,7 +27,6 @@ func NewTimeTravelServer(service service.RecordService) TimeTravelServer {
 			log.Printf("error: %v", err)
 		}
 	})
-	api.CreateRoutes(apiRoute)
 
 	return TimeTravelServer{router, api}
 }
