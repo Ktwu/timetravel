@@ -8,15 +8,28 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/temelpa/timetravel/service"
 )
 
 // NOTE: This code is mostly copied from github.com/gorilla/mux
 // and its examples for writing unit tests
 func TestServerSanity(t *testing.T) {
-	ttServer := NewTimeTravelServer()
+	sqlService, err := service.NewSQLiteRecordService(
+		"testdata",
+		service.SQLiteRecordServiceSettings{ResetOnStart: true},
+	)
+	if err != nil {
+		t.Fatalf("Unable to create service for testing, error %e", err)
+	}
+	defer func() {
+		os.RemoveAll("testdata")
+	}()
+
+	ttServer := NewTimeTravelServer(&sqlService)
 
 	// Test that using an unsupported version fails
 	req := newTestRequest(t, "GET", fmt.Sprintf("/api/v0/records/%d", 42), nil)

@@ -29,7 +29,7 @@ type SQLiteRecordService struct {
 type SQLiteRecordServiceSettings struct {
 	// When the server is started, should the backing database
 	// be purged?
-	resetOnStart bool
+	ResetOnStart bool
 }
 
 func logError(err error) {
@@ -43,7 +43,7 @@ func NewSQLiteRecordService(
 	settings SQLiteRecordServiceSettings,
 ) (SQLiteRecordService, error) {
 	dbPath := filepath.Join(sqlDirectory, data.TIMETRAVEL_DB)
-	if settings.resetOnStart {
+	if settings.ResetOnStart {
 		if err := os.RemoveAll(dbPath); err != nil {
 			logError(err)
 			return SQLiteRecordService{}, err

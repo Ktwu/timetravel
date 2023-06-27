@@ -13,7 +13,7 @@ import (
 func TestSanitySQL(t *testing.T) {
 	service, err := NewSQLiteRecordService(
 		"testdata",
-		SQLiteRecordServiceSettings{resetOnStart: true},
+		SQLiteRecordServiceSettings{ResetOnStart: true},
 	)
 	if err != nil {
 		t.Errorf("Unable to create testing database, error %v", err)
@@ -129,7 +129,7 @@ func TestSanitySQL(t *testing.T) {
 
 	service, err = NewSQLiteRecordService(
 		"testdata",
-		SQLiteRecordServiceSettings{resetOnStart: false},
+		SQLiteRecordServiceSettings{ResetOnStart: false},
 	)
 	if err != nil {
 		t.Errorf("Unable to create testing database, got err %v", err)

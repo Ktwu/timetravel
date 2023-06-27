@@ -12,13 +12,12 @@ import (
 
 type TimeTravelServer struct {
 	Router *mux.Router
-	Api *api.API
+	Api    *api.API
 }
 
-func NewTimeTravelServer() TimeTravelServer {
+func NewTimeTravelServer(service service.RecordService) TimeTravelServer {
 	router := mux.NewRouter()
-	service := service.NewInMemoryRecordService()
-	api := api.NewAPI(&service)
+	api := api.NewAPI(service)
 
 	apiRoute := router.PathPrefix("/api/v{apiVersion:1}").Subrouter()
 	apiRoute.Path("/health").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

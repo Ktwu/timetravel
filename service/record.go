@@ -12,7 +12,7 @@ var ErrRecordIDInvalid = errors.New("record id must >= 0")
 var ErrRecordAlreadyExists = errors.New("record already exists")
 
 // Implements method to get, create, and update record data.
-type RecordService interface {
+type RecordServiceV1 interface {
 
 	// GetRecord will retrieve an record.
 	GetRecord(ctx context.Context, id int) (entity.Record, error)
@@ -37,5 +37,10 @@ type RecordServiceV2 interface {
 	GetVersionedRecord(ctx context.Context, id int, version int) (entity.Record, error)
 
 	// Retrieves all versions of a record.
-	GetAllVersions(ctx context.Context, id int) ([]entity.Record, error)
+	GetAllRecordVersions(ctx context.Context, id int) ([]entity.Record, error)
+}
+
+type RecordService interface {
+	RecordServiceV1
+	RecordServiceV2
 }
