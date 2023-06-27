@@ -193,34 +193,72 @@ func (s *SQLiteRecordService) UpdateRecord(
 	return entry.Copy(), nil
 }
 
+func (s *SQLiteRecordService) GetAllRecordVersions(
+	ctx context.Context,
+	id int,
+) ([]entity.Record, error) {
+	return s.getRecordVersions(ctx, id, 1, 0)
+}
+
 func (s *SQLiteRecordService) GetVersionedRecord(
 	ctx context.Context,
 	id int,
 	version int,
 ) (entity.Record, error) {
+	r, err := s.getRecordVersions(ctx, id, version, 1)
+	if err != nil {
+		return entity.Record{}, err
+	}
+	if len(r) != 1 {
+		// TODO appropriate error here
+		return entity.Record{}, ErrRecordDoesNotExist
+	}
+	return r[0], err
+}
+
+func (s *SQLiteRecordService) getRecordVersions(
+	ctx context.Context,
+	id int,
+	minVersionToGrab int,
+	numOldestVersionsToGrab int,
+) ([]entity.Record, error) {
 	entry, err := s.GetRecord(ctx, id)
 	if err != nil {
 		logError(err)
-		return entity.Record{}, err
+		return []entity.Record{}, err
+	}
+	if minVersionToGrab > entry.Version {
+		return []entity.Record{}, ErrRecordDoesNotExist
 	}
 
-	if version == 0 || version == entry.Version {
-		return entry, nil
+	if minVersionToGrab == 0 {
+		minVersionToGrab = entry.Version
 	}
+	if numOldestVersionsToGrab == 0 {
+		numOldestVersionsToGrab = entry.Version
+	}
+	if numVersionsAvailable := entry.Version - minVersionToGrab + 1; numVersionsAvailable < numOldestVersionsToGrab {
+		numOldestVersionsToGrab = numVersionsAvailable
+	}
+	maxVersionToGrab := minVersionToGrab + numOldestVersionsToGrab - 1
 
-	if entry.Version < version {
-		return entity.Record{}, ErrRecordDoesNotExist
+	versionedRecords := make([]entity.Record, numOldestVersionsToGrab)
+	if maxVersionToGrab == entry.Version {
+		versionedRecords[entry.Version-minVersionToGrab] = entry.Copy()
+		if minVersionToGrab == entry.Version {
+			return versionedRecords, nil
+		}
 	}
 
 	statement, err := s.db.Prepare(data.QUERY_RECORD_DELTAS)
 	if err != nil {
 		logError(err)
-		return entity.Record{}, err
+		return []entity.Record{}, err
 	}
-	rows, err := statement.Query(version, id)
+	rows, err := statement.Query(minVersionToGrab, id)
 	if err != nil {
 		logError(err)
-		return entity.Record{}, err
+		return []entity.Record{}, err
 	}
 
 	for rows.Next() {
@@ -232,18 +270,22 @@ func (s *SQLiteRecordService) GetVersionedRecord(
 			if err == sql.ErrNoRows {
 				err = ErrRecordDoesNotExist
 			}
-			return entity.Record{}, err
+			return []entity.Record{}, err
 		}
 
 		var data map[string]*string
 		if err = json.Unmarshal([]byte(jsonString), &data); err != nil {
 			logError(err)
-			return entity.Record{}, err
+			return []entity.Record{}, err
 		}
 
 		entry.ApplyUpdate(data)
 		entry.Version = versionBeforeUpdate
+
+		if entry.Version <= maxVersionToGrab {
+			versionedRecords[entry.Version-minVersionToGrab] = entry.Copy()
+		}
 	}
 
-	return entry.Copy(), nil
+	return versionedRecords, nil
 }

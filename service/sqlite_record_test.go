@@ -103,6 +103,12 @@ func TestSanitySQL(t *testing.T) {
 		t.Errorf("Failed to grab newest version, got %v, expected %v", r, testEntityUpdate2)
 	}
 
+	if r, err := service.GetVersionedRecord(ctx, testEntity.ID, 3); err != nil {
+		t.Errorf("Error grabbing newest version record, error %v", err)
+	} else if !cmp.Equal(r, testEntityUpdate2) {
+		t.Errorf("Failed to grab newest version, got %v, expected %v", r, testEntityUpdate2)
+	}
+
 	if r, err := service.GetVersionedRecord(ctx, testEntity.ID, 2); err != nil {
 		t.Errorf("Error grabbing versioned record, error %v", err)
 	} else if !cmp.Equal(r, testEntityUpdate) {
@@ -113,6 +119,12 @@ func TestSanitySQL(t *testing.T) {
 		t.Errorf("Error grabbing versioned record, error %v", err)
 	} else if !cmp.Equal(r, testEntity) {
 		t.Errorf("Failed to grab version, got %v, expected %v", r, testEntity)
+	}
+
+	if rs, err := service.GetAllRecordVersions(ctx, testEntity.ID); err != nil {
+		t.Errorf("Error grabbing versions of record, error %v", err)
+	} else if expected := []entity.Record{testEntity, testEntityUpdate, testEntityUpdate2}; !cmp.Equal(rs, expected) {
+		t.Errorf("Failed to grab all versions, got %v, expected %v", rs, expected)
 	}
 
 	service, err = NewSQLiteRecordService(
