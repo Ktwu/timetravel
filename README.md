@@ -160,11 +160,14 @@ backend must delete that key of the record.
 
 # Returns a JSON blob that contains all versions of a record,
 # ordered ASC by version.
+# Use the "versions" key to access the actual list of versions.
 > GET /api/v2/records/{id}/versions
+< {"versions": [Record]}
 
 # Returns a record of the requested version. Fails if no such version `vid`
 # exists for the given record (such as if the version is too new).
 # If `vid` is 1, returns the oldest version of the record.
 # If `vid` is 0, returns the most recent version of the record.
 > GET /api/v2/records/{id}/versions/{vid}
+< Record JSON
 ```
