@@ -1,8 +1,6 @@
 package api
 
 import (
-	"sync"
-
 	"github.com/gorilla/mux"
 	"github.com/temelpa/timetravel/entity"
 	"github.com/temelpa/timetravel/service"
@@ -14,7 +12,6 @@ type APIVersion interface {
 }
 
 type API struct {
-	apiLock  sync.RWMutex
 	versions map[string]APIVersion
 }
 
@@ -27,7 +24,7 @@ func NewAPI(records service.RecordService) *API {
 	}
 }
 
-// generates all api routes
+// generates all api routes for all versions
 func (a *API) CreateRoutes(routes *mux.Router) {
 	for key, api := range a.versions {
 		apiRoute := routes.PathPrefix("/api/" + key).Subrouter()

@@ -11,6 +11,7 @@ import (
 
 // GET /records/{id}
 // GetRecord retrieves the record.
+// Since v1 + v2 behave the same given this API, we use this for both versions.
 func GetRecords(a APIVersion, records service.RecordServiceV1, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)

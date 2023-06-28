@@ -14,6 +14,7 @@ import (
 // POST /records/{id}
 // if the record exists, the record is updated.
 // if the record doesn't exist, the record is created.
+// Since v1 + v2 behave the same given this API, we use this for both versions.
 func PostRecords(a APIVersion, records service.RecordServiceV1, w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	vars := mux.Vars(r)
