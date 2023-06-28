@@ -35,7 +35,13 @@ func PostRecords(a APIVersion, records service.RecordServiceV1, w http.ResponseW
 		return
 	}
 
-	// first retrieve the record
+	// We guard checking record existence behind a writer lock
+	// since we don't want a conflicting request to sneak in
+	// a creation between our check and actual update (a true
+	// write operation)
+	rwlock := records.GetRWLockForAPI()
+	rwlock.Lock()
+	defer rwlock.Unlock()
 	record, err := records.GetRecord(
 		ctx,
 		int(idNumber),

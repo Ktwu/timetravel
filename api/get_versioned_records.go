@@ -30,6 +30,10 @@ func GetVersionedRecord(a APIVersion, records service.RecordServiceV2, w http.Re
 		logError(err)
 		return
 	}
+
+	rwlock := records.GetRWLockForAPI()
+	rwlock.RLock()
+	defer rwlock.RUnlock()
 	record, err := records.GetVersionedRecord(
 		ctx,
 		int(idNumber),
@@ -60,6 +64,9 @@ func GetVersionedRecords(a APIVersion, records service.RecordServiceV2, w http.R
 		return
 	}
 
+	rwlock := records.GetRWLock()
+	rwlock.RLock()
+	defer rwlock.RUnlock()
 	versions, err := records.GetAllRecordVersions(
 		ctx,
 		int(idNumber),

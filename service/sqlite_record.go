@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"log"
+	"sync"
 
 	// This library uses cgo, which can complicate the
 	// build environment and portability of the code, but
@@ -23,7 +24,8 @@ import (
 // SQLiteRecordService is an SQLite-backed record service that
 // persists data between runs of the server.
 type SQLiteRecordService struct {
-	db *sql.DB
+	db     *sql.DB
+	rwlock sync.RWMutex
 }
 
 type SQLiteRecordServiceSettings struct {
@@ -83,7 +85,11 @@ func NewSQLiteRecordService(
 		}
 	}
 
-	return SQLiteRecordService{db}, nil
+	return SQLiteRecordService{db, sync.RWMutex{}}, nil
+}
+
+func (s *SQLiteRecordService) GetRWLockForAPI() *sync.RWMutex {
+	return &s.rwlock
 }
 
 func (s *SQLiteRecordService) GetRecord(

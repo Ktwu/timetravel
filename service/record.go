@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/temelpa/timetravel/entity"
 )
@@ -11,8 +12,17 @@ var ErrRecordDoesNotExist = errors.New("record with that id does not exist")
 var ErrRecordIDInvalid = errors.New("record id must >= 0")
 var ErrRecordAlreadyExists = errors.New("record already exists")
 
+type RecordServiceBase interface {
+	// TODO: It seems awkward for a rwlock to be used mostly outside the
+	// struct that owns it. Ideally the service ought to be the one locking.
+	// Try to make things structured so that the lock lives elsewhere,
+	// or the service is the true user of the lock.
+	GetRWLockForAPI() *sync.RWMutex
+}
+
 // Implements method to get, create, and update record data.
 type RecordServiceV1 interface {
+	RecordServiceBase
 
 	// GetRecord will retrieve an record.
 	GetRecord(ctx context.Context, id int) (entity.Record, error)
@@ -32,6 +42,7 @@ type RecordServiceV1 interface {
 // Introduce the concept of record versions. Versions will start at 1 and increment per
 // later versions that exist
 type RecordServiceV2 interface {
+	RecordServiceBase
 	RecordServiceV1
 
 	// Retrieve a record. If `version` is nil or 0, return the latest version that

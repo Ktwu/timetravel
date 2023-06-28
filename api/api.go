@@ -1,6 +1,8 @@
 package api
 
 import (
+	"sync"
+
 	"github.com/gorilla/mux"
 	"github.com/temelpa/timetravel/entity"
 	"github.com/temelpa/timetravel/service"
@@ -12,6 +14,7 @@ type APIVersion interface {
 }
 
 type API struct {
+	apiLock  sync.RWMutex
 	versions map[string]APIVersion
 }
 

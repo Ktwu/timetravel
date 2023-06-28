@@ -23,6 +23,9 @@ func GetRecords(a APIVersion, records service.RecordServiceV1, w http.ResponseWr
 		return
 	}
 
+	rwlock := records.GetRWLockForAPI()
+	rwlock.RLock()
+	defer rwlock.RUnlock()
 	record, err := records.GetRecord(
 		ctx,
 		int(idNumber),
