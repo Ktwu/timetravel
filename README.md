@@ -1,11 +1,11 @@
 # The Temelpa Take-Home Assignment
 
-Please create a __private__ version of this repo, complete the objectives, and once you
+Please create a **private** version of this repo, complete the objectives, and once you
 are finished, send a link to your repo to us.
 
 # The Assignment
 
-Part of what an insurance company needs to have in its backend is a 
+Part of what an insurance company needs to have in its backend is a
 record system. As an insurer, we need to keep an up-to-date record of each of our policy-holder's
 data points that go into the calculation of their rate. When a policy-holder updates
 their information, I.E. they change addresses, or add/remove new employees to their team
@@ -34,29 +34,29 @@ you like to achieve this even as far as building this in an entirely different l
 
 ## Objective: Switch To Sqlite
 
-The current implementation does not store the data. The data is lost once the server 
-process is killed. You should change the code so that all changes are persisted on 
+The current implementation does not store the data. The data is lost once the server
+process is killed. You should change the code so that all changes are persisted on
 to sqlite.
 
-Once you're done, the data should be persistent on to a sqlite file as the server 
+Once you're done, the data should be persistent on to a sqlite file as the server
 is running. The server should tolerate restarting the process without data loss.
 
 ## Objective: Add Time Travel
 
 This part is far more open-ended. You might need to make major changes across nearly
-all files of the codebase. You'll be adding partial persistentence to the records. [Take a look 
+all files of the codebase. You'll be adding partial persistentence to the records. [Take a look
 at these slides on persistent data structures to learn what that means](https://www.ics.uci.edu/~eppstein/261/s21w9.pdf).
 
-You should create a set of `/api/v2` endpoints that enable you to do run gets, creates, and updates. 
-Updates should be able to add modifications on top of any pre-existing versions not just the latest. 
-There should be a way to get a list of the different versions too. Finally, `/api/v1` 
+You should create a set of `/api/v2` endpoints that enable you to do run gets, creates, and updates.
+Updates should be able to add modifications on top of any pre-existing versions not just the latest.
+There should be a way to get a list of the different versions too. Finally, `/api/v1`
 should still work after these changes.
 
 # Reccommendations
 
 We expect you to work as if this task was a normal project at work. So please write
 your code in a way that fits your intuitive notion of operating within best practices.
-Additionally, you should at the very least have a different commmit for each individual objective, 
+Additionally, you should at the very least have a different commmit for each individual objective,
 ideally more as you go through process of completing the take-home. Also we like
 to see your thought process and fixes as you make changes. So don't be afraid of
 committing code that you later edit. No need to squash those commits.
@@ -65,8 +65,7 @@ Many parts of the assignment is intentionally ambiguious. If you have a question
 reach out. But for many of these ambiguiuties, we want to see how you independently make
 software design decisions.
 
-
-# Reference -- The Current API
+# Reference -- API v1
 
 There are only two API endpoints `GET /api/v1/records/{id}` and `POST /api/v1/records/{id}`, all ids must be positive integers.
 
@@ -125,4 +124,47 @@ backend must delete that key of the record.
 < HTTP/1.1 200 OK
 < Content-Type: application/json; charset=utf-8
 {"id":1,"data":{"status":"ok"}}
+```
+
+# Reference -- API v2
+
+## Data model
+
+### Record
+
+```bash
+{
+    # A unique ID for this record
+    "id": int
+
+    # A map of strings to strings
+    "data": {string:string}
+
+    # NEW in V2
+    # How many times has this record been significantly updated
+    # Newly-created records start at 1, and each update that mutates
+    # the backing store increases the value by 1
+    "version": int
+}
+```
+
+## Endpoints
+
+```bash
+# Behaves the same as v1, except the returned record will also include
+# version information as a `version` field.
+> GET /api/v2/records/{id}
+
+# Behaves the same as v1: creates a new record, or updates an existing one.
+> POST /api/v2/records/{id}
+
+# Returns a JSON blob that contains all versions of a record,
+# ordered ASC by version.
+> GET /api/v2/records/{id}/versions
+
+# Returns a record of the requested version. Fails if no such version `vid`
+# exists for the given record (such as if the version is too new).
+# If `vid` is 1, returns the oldest version of the record.
+# If `vid` is 0, returns the most recent version of the record.
+> GET /api/v2/records/{id}/versions/{vid}
 ```
