@@ -64,7 +64,7 @@ func GetVersionedRecords(a APIVersion, records service.RecordServiceV2, w http.R
 		return
 	}
 
-	rwlock := records.GetRWLock()
+	rwlock := records.GetRWLockForAPI()
 	rwlock.RLock()
 	defer rwlock.RUnlock()
 	versions, err := records.GetAllRecordVersions(
